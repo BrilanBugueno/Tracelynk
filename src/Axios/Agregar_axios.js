@@ -32,7 +32,7 @@ const AgregarVehiculo = ({ onAgregar }) => {
 
     const fetchMarcas = async () => {
         try {
-            const response = await axios.get('http://localhost/Tracelink/obtener_marcas.php');
+            const response = await axios.get('http://localhost/Tracelink/vehiculo/obtener_marcas.php');
             setMarcas(response.data);
         } catch (error) {
             console.error('Error al obtener marcas:', error);
@@ -41,7 +41,7 @@ const AgregarVehiculo = ({ onAgregar }) => {
 
     const fetchModelos = async (marcaId) => {
         try {
-            const response = await axios.get(`http://localhost/Tracelink/obtener_modelos.php?marca=${marcaId}`);
+            const response = await axios.get(`http://localhost/Tracelink/vehiculo/obtener_modelos.php?marca=${marcaId}`);
             setModelos(response.data);
         } catch (error) {
             console.error('Error al obtener modelos:', error);
@@ -67,7 +67,7 @@ const AgregarVehiculo = ({ onAgregar }) => {
         });
 
         try {
-            const response = await axios.post('/agregar_vehiculo.php', {
+            const response = await axios.post('http://localhost/Tracelink/vehiculo/agregar_vehiculo.php', {
                 marca,
                 modelo,
                 anio,
