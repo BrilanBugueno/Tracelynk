@@ -7,6 +7,14 @@ import AgregarVehiculo from "./Axios/Agregar_axios"
 import ModificarVehiculos from "./Axios/Modificar_vehiculos"
 import Inicio from "./components/Inicio"
 import Mantencion from "./Axios/AgregarMantencion" 
+import AgregarPoligono from './Axios/AgregarPoligono';
+import EditarPoligono from "./Axios/EditarPoligono";
+
+
+
+
+
+
 
 function App() {
   return (
@@ -20,6 +28,8 @@ function App() {
         <Route path='/Estados' element={<Estados/>}/> 
         <Route path='/AgregarVehiculo' element={<AgregarVehiculo/>}/> 
         <Route path='/ModificarVehiculos' element={<ModificarVehiculos/>}/> 
+        <Route path='/EditarPoligono' element={<EditarPoligono/>}/> 
+        <Route path='/AgregarPoligono' element={<AgregarPoligono/>}/> 
       </Routes>     
       </BrowserRouter>
     </>
