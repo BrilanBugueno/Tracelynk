@@ -1,40 +1,40 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 function AgregarPoligono() {
   const [nombre, setNombre] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    fetch('AgregarPoligono.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: `nombre=${encodeURIComponent(nombre)}`,
-    })
-    .then(response => response.text())
-    .then(data => {
-      alert(data);
+
+    // Crear un objeto con los datos del polígono
+    const poligono = { nombre };
+
+    // Enviar los datos al servidor
+    axios.post('http://localhost/Tracelink/poligonos/AgregarPoligono.php', poligono)
+    .then(response => {
+      alert(response.data.message);
       setNombre('');
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('Error:', error);
     });
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <label htmlFor="nombre">Nombre del Polígono:</label>
-      <input
-        type="text"
-        id="nombre"
-        value={nombre}
-        onChange={(e) => setNombre(e.target.value)}
-        required
-      />
+      <label>
+        Nombre del Polígono:
+        <input
+          type="text"
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          required
+        />
+      </label>
       <button type="submit">Agregar Polígono</button>
     </form>
   );
-}
+};
 
 export default AgregarPoligono;
