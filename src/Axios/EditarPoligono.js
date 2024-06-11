@@ -1,93 +1,76 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
-const ListaPoligonos = () => {
-  const [poligonos, setPoligonos] = useState([]);
-  const [idEditar, setIdEditar] = useState('');
-  const [nombreEditar, setNombreEditar] = useState('');
+const DataTable = () => {
+    const [data, setData] = useState([]);
 
-  // Función para cargar los polígonos desde la base de datos
-  const cargarPoligonos = async () => {
-    try {
-      const response = await fetch('ruta-a-tu-archivo-php-para-obtener-poligonos');
-      const data = await response.json();
-      setPoligonos(data);
-    } catch (error) {
-      console.error('Error al cargar los polígonos:', error);
-    }
+    // Función para obtener los datos de los polígonos
+    const getPoligonos = async () => {
+        try {
+            const response = await axios.get('http://localhost/Tracelink/poligonos/MostrarPoligonos.php');
+            setData(response.data);
+        } catch (error) {
+            console.error("Error al obtener los polígonos: ", error);
+        }
+    };
+
+    // Llamar a getPoligonos cuando el componente se monta
+    useEffect(() => {
+        getPoligonos();
+    }, []);
+
+    const handleEdit = async (id) => {
+        const nombre = prompt("Ingresa el nuevo nombre del polígono:");
+        if (nombre) {
+            try {
+                const response = await axios.post(`http://localhost/Tracelink/poligonos/EditarPoligono.php?id=${id}&nombre=${encodeURIComponent(nombre)}`);
+                if (response.data.message) {
+                    alert(response.data.message);
+                }
+                setData(data.map(item => item.idPoligono === id ? {...item, nombre} : item));
+            } catch (error) {
+                console.error("Error al editar el polígono: ", error);
+            }
+        }
+    };
+
+    const handleDelete = async (id) => {
+      if (window.confirm("¿Estás seguro de que quieres eliminar este polígono?")) {
+          try {
+              const response = await axios.post(`http://localhost/Tracelink/poligonos/EliminarPoligono.php`, { id: id });
+              if (response.data.message) {
+                  alert(response.data.message);
+              }
+              getPoligonos();   // Volver a obtener los datos de los polígonos
+          } catch (error) {
+              console.error("Error al eliminar el polígono: ", error);
+          }
+      }
   };
 
-  // Función para actualizar el polígono
-  const actualizarPoligono = async (e) => {
-    e.preventDefault();
-    try {
-      const formData = new FormData();
-      formData.append('id', idEditar);
-      formData.append('nombre', nombreEditar);
-
-      const response = await fetch('ruta-a-tu-archivo-php-para-actualizar-poligonos', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.text();
-      alert(result);
-      cargarPoligonos(); // Recargar la lista después de la actualización
-    } catch (error) {
-      console.error('Error al actualizar el polígono:', error);
-    }
-  };
-
-  // Cargar los polígonos al montar el componente
-  useEffect(() => {
-    cargarPoligonos();
-  }, []);
-
-  return (
-    <>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {poligonos.map((poligono) => (
-            <tr key={poligono.id}>
-              <td>{poligono.id}</td>
-              <td>{poligono.nombre}</td>
-              <td>
-                <button onClick={() => {
-                  setIdEditar(poligono.id);
-                  setNombreEditar(poligono.nombre);
-                }}>
-                  Editar
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <form onSubmit={actualizarPoligono}>
-        <input
-          type="hidden"
-          value={idEditar}
-          onChange={(e) => setIdEditar(e.target.value)}
-        />
-        <label>
-          Nombre del Polígono:
-          <input
-            type="text"
-            value={nombreEditar}
-            onChange={(e) => setNombreEditar(e.target.value)}
-          />
-        </label>
-        <button type="submit">Actualizar Polígono</button>
-      </form>
-    </>
-  );
+    return (
+        <table>
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Nombre</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {data.map(row => (
+                    <tr key={row.idPoligono}>
+                        <td>{row.idPoligono}</td>
+                        <td>{row.nombre}</td>
+                        <td>
+                            <button onClick={() => handleEdit(row.idPoligono)}>Editar</button>
+                            <button onClick={() => handleDelete(row.idPoligono)}>Eliminar</button>
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    );
 };
 
-export default ListaPoligonos;
+export default DataTable;
