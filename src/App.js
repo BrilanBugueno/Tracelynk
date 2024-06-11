@@ -9,11 +9,8 @@ import Inicio from "./components/Inicio"
 import Mantencion from "./Axios/AgregarMantencion" 
 import AgregarPoligono from './Axios/AgregarPoligono';
 import EditarPoligono from "./Axios/EditarPoligono";
-
-
-
-
-
+import AgregarPunto from './Axios/AgregarPunto';
+import EditarPunto from './Axios/EditarPunto';
 
 
 function App() {
@@ -30,6 +27,8 @@ function App() {
         <Route path='/ModificarVehiculos' element={<ModificarVehiculos/>}/> 
         <Route path='/EditarPoligono' element={<EditarPoligono/>}/> 
         <Route path='/AgregarPoligono' element={<AgregarPoligono/>}/> 
+        <Route path='/AgregarPunto' element={<AgregarPunto/>}/> 
+        <Route path='/EditarPunto' element={<EditarPunto/>}/> 
       </Routes>     
       </BrowserRouter>
     </>

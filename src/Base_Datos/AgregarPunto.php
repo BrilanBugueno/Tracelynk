@@ -17,18 +17,20 @@ if ($conn->connect_error) {
 
 $data = json_decode(file_get_contents("php://input"), true);
 
-if (isset($data['id'])) {
-    $id = $conn->real_escape_string($data['id']);
+if (isset($data['longitud']) && isset($data['latitud']) && isset($data['poligonoId'])) {
+    $longitud = $conn->real_escape_string($data['longitud']);
+    $latitud = $conn->real_escape_string($data['latitud']);
+    $poligonoId = $conn->real_escape_string($data['poligonoId']);
 
-    $sql = "DELETE FROM Poligono WHERE id = $id";
+    $sql = "INSERT INTO Puntos (Longitud, Latitud, Poligono_idPoligono) VALUES ('$longitud', '$latitud', $poligonoId)";
 
     if ($conn->query($sql) === TRUE) {
-        echo json_encode(["success" => true, "message" => "Registro eliminado con éxito"]);
+        echo json_encode(["success" => true, "message" => "Punto agregado con éxito"]);
     } else {
-        echo json_encode(["success" => false, "error" => "Error al eliminar el registro: " . $conn->error]);
+        echo json_encode(["success" => false, "error" => "Error al agregar el punto: " . $conn->error]);
     }
 } else {
-    echo json_encode(["success" => false, "error" => "No se proporcionó ningún ID"]);
+    echo json_encode(["success" => false, "error" => "No se proporcionaron todos los datos necesarios"]);
 }
 
 $conn->close();

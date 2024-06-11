@@ -19,34 +19,41 @@ const DataTable = () => {
         getPoligonos();
     }, []);
 
-    const handleEdit = async (id) => {
+    const handleEdit = (id) => {
         const nombre = prompt("Ingresa el nuevo nombre del polígono:");
         if (nombre) {
-            try {
-                const response = await axios.post(`http://localhost/Tracelink/poligonos/EditarPoligono.php?id=${id}&nombre=${encodeURIComponent(nombre)}`);
-                if (response.data.message) {
-                    alert(response.data.message);
-                }
-                setData(data.map(item => item.idPoligono === id ? {...item, nombre} : item));
-            } catch (error) {
-                console.error("Error al editar el polígono: ", error);
-            }
+            axios.post('http://localhost/Tracelink/poligonos/EditarPoligono.php', { id: id, nombre: nombre })
+                .then(response => {
+                    if (response.data.message) {
+                        alert(response.data.message);
+                    }
+                    getPoligonos(); // Volver a obtener los datos de los polígonos
+                })
+                .catch((error) => {
+                    console.error("Error al editar el polígono: ", error);
+                });
         }
     };
 
-    const handleDelete = async (id) => {
-      if (window.confirm("¿Estás seguro de que quieres eliminar este polígono?")) {
-          try {
-              const response = await axios.post(`http://localhost/Tracelink/poligonos/EliminarPoligono.php`, { id: id });
-              if (response.data.message) {
-                  alert(response.data.message);
-              }
-              getPoligonos();   // Volver a obtener los datos de los polígonos
-          } catch (error) {
-              console.error("Error al eliminar el polígono: ", error);
-          }
-      }
-  };
+    const handleDelete = (id) => {
+        if (window.confirm("¿Estás seguro de que quieres eliminar este polígono?")) {
+            axios.post('http://localhost/Tracelink/poligonos/EliminarPoligono.php', { id: id })
+                .then(response => {
+                    if (response.data.success) {
+                        alert('El polígono se eliminó correctamente');
+                    } else {
+                        alert(response.data.message);
+                    }
+                    getPoligonos(); // Volver a obtener los datos de los polígonos
+                })
+                .catch((error) => {
+                    console.error("Error al eliminar el polígono: ", error);
+                });
+        }
+    };
+    
+    
+    
 
     return (
         <table>
