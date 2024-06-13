@@ -29,16 +29,24 @@ const EditarPunto = () => {
 
     const editarPunto = async () => {
         try {
-            const formData = new FormData();
-            formData.append('longitud', longitud);
-            formData.append('latitud', latitud);
-
-            const response = await axios.put(`http://localhost/Tracelink/poligonos/EditarPunto.php?id=${selectedPunto}`, formData);
+            const data = {
+                longitud: longitud,
+                latitud: latitud
+            };
+    
+            console.log('Datos enviados al servidor:', data);
+    
+            const response = await axios.put(`http://localhost/Tracelink/poligonos/EditarPunto.php?id=${selectedPunto}`, data, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
             console.log(response.data);
         } catch (error) {
             console.error(error);
         }
     };
+    
 
     return (
         <div>
