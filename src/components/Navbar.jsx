@@ -39,7 +39,17 @@ function Navbar() {
             <a href="/AgregarPunto">Agregar</a>
             <a href="/EditarPunto">Editar</a>
           </div>
-        </li>
+          </li>
+    {/* Dropdown Polipunto */}
+    <li className="dropdown">
+      <a href="/AgregarPolipunto" className="dropbtn">Polipunto</a>
+      <div className="dropdown-content">
+        <a href="/AgregarPoliPunto">Agregar Polígono</a>
+        <a href="/AgregarPunto">Agregar Punto</a>
+      </div>
+    </li>
+        
+        
       </ul>
     </nav>
   );
