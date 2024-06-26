@@ -1,94 +1,132 @@
-// Importamos las librerías necesarias
-import React, { useState } from 'react'; // Importamos React y el hook useState de la librería React
-import axios from 'axios'; // Importamos axios, una librería para hacer solicitudes HTTP
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
-// Definimos nuestro componente PolygonComponent
-const PolygonComponent = () => {
-  // Usamos el hook useState para manejar el estado de nuestro componente
-  const [name, setName] = useState(''); // Este estado guarda el nombre del polígono
-  const [coordinates, setCoordinates] = useState([{ lat: 0, lng: 0 }]); // Este estado guarda las coordenadas del polígono
+function AgregarPoligono() {
+  const [nombre, setNombre] = useState('');
+  const [poligonos, setPoligonos] = useState([]);
+  const [poligonoSeleccionado, setPoligonoSeleccionado] = useState('');
+  const [puntos, setPuntos] = useState([{ latitud: '', longitud: '' }]);
 
-  // Función para agregar un nuevo punto
-  const handleAddPoint = () => {
-    setCoordinates(prevState => [...prevState, { lat: 0, lng: 0 }]); // Agrega un nuevo punto con latitud y longitud 0 al estado coordinates
-  };
-
-  // Función para eliminar un punto
-  const handleRemovePoint = (index) => {
-    setCoordinates(prevState => prevState.filter((_, i) => i !== index)); // Elimina el punto en el índice especificado del estado coordinates
-  };
-
-  // Función para cambiar la latitud de un punto
-  const handleLatChange = (index, newLat) => {
-    setCoordinates(prevState => prevState.map((coord, i) => i === index ? { ...coord, lat: newLat } : coord)); // Cambia la latitud del punto en el índice especificado al nuevo valor
-  };
-
-  // Función para cambiar la longitud de un punto
-  const handleLngChange = (index, newLng) => {
-    setCoordinates(prevState => prevState.map((coord, i) => i === index ? { ...coord, lng: newLng } : coord)); // Cambia la longitud del punto en el índice especificado al nuevo valor
-  };
-
-  // Función para agregar un polígono
-  const handleAddPolygon = () => {
-    axios.post('http://localhost/Tracelink/poligonos/EditarPoligono.php', { nombre: name }) // Hace una solicitud HTTP POST a tu script PHP para agregar un polígono
+  useEffect(() => {
+    // Obtener los polígonos al cargar el componente
+    axios.get('http://localhost/Tracelink/poligonos/MostrarPoligonos.php')
       .then(response => {
-        if (response.data.success) {
-          alert('Polígono agregado exitosamente'); // Muestra un mensaje de éxito si la solicitud fue exitosa
-        } else {
-          alert('Error al agregar el polígono: ' + response.data.error); // Muestra un mensaje de error si hubo un error
-        }
+        setPoligonos(response.data);
       })
-      .catch(error => {
-        alert('Error al hacer la solicitud: ' + error); // Muestra un mensaje de error si hubo un error al hacer la solicitud
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+  }, []);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Crear un objeto con los datos del polígono
+    const poligono = { nombre };
+
+    // Enviar los datos al servidor
+    axios.post('http://localhost/Tracelink/poligonos/AgregarPoligono.php', poligono)
+      .then(response => {
+        alert(response.data.message);
+        setNombre('');
+      })
+      .catch((error) => {
+        console.error('Error:', error);
       });
   };
 
-  // Función para agregar un punto a un polígono
-  const handleAddPointToPolygon = (index) => {
-    axios.post('http://localhost/tu-script-php-agregar-punto.php', { longitud: coordinates[index].lng, latitud: coordinates[index].lat, idPoligono: 1 }) // Hace una solicitud HTTP POST a tu script PHP para agregar un punto a un polígono
-      .then(response => {
-        if (response.data.success) {
-          alert('Punto agregado exitosamente'); // Muestra un mensaje de éxito si la solicitud fue exitosa
-        } else {
-          alert('Error al agregar el punto: ' + response.data.error); // Muestra un mensaje de error si hubo un error
-        }
-      })
-      .catch(error => {
-        alert('Error al hacer la solicitud: ' + error); // Muestra un mensaje de error si hubo un error al hacer la solicitud
-      });
+  const handleAddPunto = () => {
+    setPuntos([...puntos, { latitud: '', longitud: '' }]);
   };
 
-  // Renderizamos nuestro componente
+  const handleRemovePunto = (index) => {
+    const newPuntos = [...puntos];
+    newPuntos.splice(index, 1);
+    setPuntos(newPuntos);
+  };
+
+  const handleAgregarPuntos = () => {
+    // Enviar los puntos al servidor
+    const idPoligono = poligonos.find(poligono => poligono.nombre === poligonoSeleccionado).idPoligono;
+    puntos.forEach((punto, index) => {
+      const formData = new FormData();
+      formData.append('longitud', punto.longitud);
+      formData.append('latitud', punto.latitud);
+      formData.append('idPoligono', idPoligono);
+      axios.post('http://localhost/Tracelink/poligonos/AgregarPunto.php', formData)
+        .then(response => {
+          alert(`Punto ${index + 1}: ${response.data.message}`);
+        })
+        .catch((error) => {
+          console.error('Error:', error);
+        });
+    });
+  };
+  
+  
+
   return (
     <div>
-      <input
-        type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Nombre del polígono"
-      /> {/* Campo de entrada para el nombre del polígono */}
-      <button style={{ fontSize: '20px', padding: '10px' }} onClick={handleAddPolygon}>Agregar</button> {/* Botón para agregar un polígono */}
-      {coordinates.map((coord, index) => ( // Mapeamos cada coordenada a un conjunto de elementos de React
-        <div key={index}>
+      <h1>Agregar Polígono</h1>
+      <form onSubmit={handleSubmit}>
+        <label>
+          Nombre del Polígono:
           <input
-            type="number"
-            value={coord.lat}
-            onChange={(e) => handleLatChange(index, Number(e.target.value))}
-            placeholder="Latitud"
-          /> {/* Campo de entrada para la latitud del punto */}
-          <input
-            type="number"
-            value={coord.lng}
-            onChange={(e) => handleLngChange(index, Number(e.target.value))}
-            placeholder="Longitud"
-          /> {/* Campo de entrada para la longitud del punto */}
-          <button onClick={() => handleRemovePoint(index)}>-</button> {/* Botón para eliminar un punto */}
-          <button style={{ fontSize: '20px', padding: '10px', marginTop: '10px' }} onClick={() => handleAddPointToPolygon(index)}>Agregar</button> {/* Botón para agregar un punto a un polígono */}
-        </div>
-      ))}
-      <button onClick={handleAddPoint}>+</button> {/* Botón para agregar un nuevo punto */}
+            type="text"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            required
+          />
+        </label>
+        <button type="submit">Agregar Polígono</button>
+      </form>
+
+      <h1>Agregar Punto</h1>
+      <form onSubmit={handleAgregarPuntos}>
+        <label>
+          Selecciona un Polígono:
+          <select value={poligonoSeleccionado} onChange={(e) => setPoligonoSeleccionado(e.target.value)}>
+            {poligonos.map((poligono, index) => (
+              <option key={index} value={poligono.nombre}>{poligono.nombre}</option>
+            ))}
+          </select>
+        </label>
+        {puntos.map((punto, index) => (
+          <div key={index}>
+            <label>
+              Latitud:
+              <input
+                type="text"
+                value={punto.latitud}
+                onChange={(e) => {
+                  const newPuntos = [...puntos];
+                  newPuntos[index].latitud = e.target.value;
+                  setPuntos(newPuntos);
+                }}
+                required
+              />
+            </label>
+            <label>
+              Longitud:
+              <input
+                type="text"
+                value={punto.longitud}
+                onChange={(e) => {
+                  const newPuntos = [...puntos];
+                  newPuntos[index].longitud = e.target.value;
+                  setPuntos(newPuntos);
+                }}
+                required
+              />
+            </label>
+            <button type="button" onClick={() => handleRemovePunto(index)}>Quitar Punto</button>
+          </div>
+        ))}
+        <button type="button" onClick={handleAddPunto}>Añadir Punto</button>
+        <button type="submit">Enviar Puntos</button>
+      </form>
     </div>
   );
 };
 
-export default PolygonComponent; // Exportamos nuestro componente para que pueda ser usado en otros archivos
+export default AgregarPoligono;
