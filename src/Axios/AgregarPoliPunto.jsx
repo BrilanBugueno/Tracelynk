@@ -1,21 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Navbar from '../components/Navbar';
 
 function AgregarPoligono() {
   const [nombre, setNombre] = useState('');
   const [poligonos, setPoligonos] = useState([]);
   const [poligonoSeleccionado, setPoligonoSeleccionado] = useState('');
   const [puntos, setPuntos] = useState([{ latitud: '', longitud: '' }]);
-
+ const cargarPoligonos = ()=>{
+// Obtener los polígonos al cargar el componente
+axios.get('http://localhost/Tracelink/poligonos/MostrarPoligonos.php')
+.then(response => {
+  setPoligonos(response.data);
+})
+.catch((error) => {
+  console.error('Error:', error);
+});
+ }
   useEffect(() => {
-    // Obtener los polígonos al cargar el componente
-    axios.get('http://localhost/Tracelink/poligonos/MostrarPoligonos.php')
-      .then(response => {
-        setPoligonos(response.data);
-      })
-      .catch((error) => {
-        console.error('Error:', error);
-      });
+    cargarPoligonos();
   }, []);
 
   const handleSubmit = (e) => {
@@ -29,6 +32,7 @@ function AgregarPoligono() {
       .then(response => {
         alert(response.data.message);
         setNombre('');
+        cargarPoligonos();
       })
       .catch((error) => {
         console.error('Error:', error);
@@ -45,28 +49,32 @@ function AgregarPoligono() {
     setPuntos(newPuntos);
   };
 
+
   const handleAgregarPuntos = () => {
     // Enviar los puntos al servidor
     const idPoligono = poligonos.find(poligono => poligono.nombre === poligonoSeleccionado).idPoligono;
-    puntos.forEach((punto, index) => {
+    for (let i = 0; i < puntos.length; i++) {
+      const punto = puntos[i];
       const formData = new FormData();
       formData.append('longitud', punto.longitud);
       formData.append('latitud', punto.latitud);
       formData.append('idPoligono', idPoligono);
       axios.post('http://localhost/Tracelink/poligonos/AgregarPunto.php', formData)
         .then(response => {
-          alert(`Punto ${index + 1}: ${response.data.message}`);
+          console.log(`Punto ${i + 1}: ${response.data.message}`);
         })
         .catch((error) => {
           console.error('Error:', error);
         });
-    });
-  };
-  
+    }
+    alert('Todos los puntos han sido agregados exitosamente.');
+};
+
   
 
   return (
     <div>
+       <Navbar />
       <h1>Agregar Polígono</h1>
       <form onSubmit={handleSubmit}>
         <label>
