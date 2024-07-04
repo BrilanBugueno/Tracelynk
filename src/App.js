@@ -12,6 +12,8 @@ import EditarPoligono from "./Axios/EditarPoligono";
 import AgregarPunto from './Axios/AgregarPunto';
 import EditarPunto from './Axios/EditarPunto';
 import AgregarPoliPunto from './Axios/AgregarPoliPunto';
+import EditarPoliPunto from './Axios/EditarPoliPunto';
+
 
 function App() {
   return (
@@ -29,7 +31,9 @@ function App() {
         <Route path='/AgregarPoligono' element={<AgregarPoligono/>}/> 
         <Route path='/AgregarPunto' element={<AgregarPunto/>}/> 
         <Route path='/EditarPunto' element={<EditarPunto/>}/> 
-        <Route path='/AgregarPoliPunto' element={<AgregarPoliPunto/>}/> 
+        <Route path='/AgregarPoliPunto' element={<AgregarPoliPunto/>}/>
+        <Route path='/EditarPoliPunto' element={<EditarPoliPunto/>}/> 
+
       </Routes>     
       </BrowserRouter>
     </>

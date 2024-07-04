@@ -46,6 +46,7 @@ function Navbar() {
       <div className="dropdown-content">
         <a href="/AgregarPoliPunto">Agregar Polígono</a>
         <a href="/AgregarPunto">Agregar Punto</a>
+        <a href="/EditarPoliPunto">Editar</a>
       </div>
     </li>
         
