@@ -29,7 +29,8 @@ function MostrarPuntos() {
   }, []);
 
   const handleEditarPunto = (idPuntos) => {
-    log.idPuntos;
+    console.log("Intentando modificar cita con ID:", idPuntos);
+    const PoliPuntos = idPuntos.find(c => c.idPuntos === idPuntos);
     const editItem = editData.find(item => item.idPuntos === idPuntos);
     if (editItem) {
       // Buscar el ID del polígono basado en el nombre

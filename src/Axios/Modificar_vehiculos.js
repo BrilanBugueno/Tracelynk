@@ -7,6 +7,7 @@ const Vehiculos = () => {
     const [data, setData] = useState([]);
     const [marcas, setMarcas] = useState([]);
     const [modelos, setModelos] = useState([]);
+    const [Estado, setEstado] = useState([]);
     const [error, setError] = useState(null);
     const [filtro, setFiltro] = useState('');
     const [vehiculoSeleccionado, setVehiculoSeleccionado] = useState(null);
@@ -19,7 +20,8 @@ const Vehiculos = () => {
         transmision: '',
         patente: '',
         kilometrajeinicial: '',
-        kilometrajeactual: ''
+        kilometrajeactual: '',
+        idEstado: ''
     });
 
     const [showModal, setShowModal] = useState(false);
@@ -27,6 +29,7 @@ const Vehiculos = () => {
     useEffect(() => {
         fetchData();
         fetchMarcas();
+        fetchEstados(); 
     }, []);
 
     useEffect(() => {
@@ -46,7 +49,7 @@ const Vehiculos = () => {
 
     const handleDelete = async (vehiculoId) => {
         try {
-            const response = await axios.post('http://localhost/Tracelink/eliminar_vehiculo.php', { id: vehiculoId });
+            const response = await axios.post('http://localhost/Tracelink/vehiculo/eliminar_vehiculo.php', { id: vehiculoId });
             alert(response.data.message); // Mostrar mensaje de éxito o error
             // Actualizar la lista de vehículos después de eliminar
             fetchData();
@@ -58,7 +61,7 @@ const Vehiculos = () => {
 
     const fetchMarcas = async () => {
         try {
-            const response = await axios.get('http://localhost/Tracelink/obtener_marcas.php');
+            const response = await axios.get('http://localhost/Tracelink/vehiculo/obtener_marcas.php');
             setMarcas(response.data);
         } catch (error) {
             console.error('Error al obtener marcas:', error);
@@ -67,10 +70,19 @@ const Vehiculos = () => {
 
     const fetchModelos = async (marcaId) => {
         try {
-            const response = await axios.get(`http://localhost/Tracelink/obtener_modelos.php?marca=${marcaId}`);
+            const response = await axios.get(`http://localhost/Tracelink/vehiculo/obtener_modelos.php?marca=${marcaId}`);
             setModelos(response.data);
         } catch (error) {
             console.error('Error al obtener modelos:', error);
+        }
+    };
+
+    const fetchEstados = async () => {
+        try {
+            const response = await axios.get('http://localhost/Tracelink/vehiculo/obtener_Estado.php');
+            setEstado(response.data);
+        } catch (error) {
+            console.error('Error al obtener Estados:', error);
         }
     };
 
@@ -86,7 +98,8 @@ const Vehiculos = () => {
                 transmision: vehiculo.transmision,
                 patente: vehiculo.patente,
                 kilometrajeinicial: vehiculo.kilometrajeinicial,
-                kilometrajeactual: vehiculo.kilometrajeactual
+                kilometrajeactual: vehiculo.kilometrajeactual,
+                idEstado: vehiculo.idEstado
             });
             setEditando(true);
             setShowModal(true);
@@ -94,7 +107,6 @@ const Vehiculos = () => {
             console.error('Vehículo no encontrado:', vehiculoId);
         }
     };
-
 
     const handleEditar = (e) => {
         const { name, value } = e.target;
@@ -109,7 +121,7 @@ const Vehiculos = () => {
         e.preventDefault();
         console.log("Nuevo vehículo:", nuevoVehiculo); // Agregar este console.log para ver el estado actual de nuevoVehiculo
         try {
-            const response = await axios.post('http://localhost/Tracelink/editar_vehiculo.php', nuevoVehiculo);
+            const response = await axios.post('http://localhost/Tracelink/vehiculo/editar_vehiculo.php', nuevoVehiculo);
             console.log("Respuesta del servidor:", response.data);
             alert(response.data.message); // Mostrar mensaje de éxito o error
             // Actualizar la lista de vehículos después de editar
@@ -126,7 +138,8 @@ const Vehiculos = () => {
                 transmision: '',
                 patente: '',
                 kilometrajeinicial: '',
-                kilometrajeactual: ''
+                kilometrajeactual: '',
+                idEstado: ''
             });
         } catch (error) {
             console.error('Error al editar vehículo:', error);
@@ -141,9 +154,24 @@ const Vehiculos = () => {
             modelo: modelo
         }));
     };
+
+    const handleEstado = (e) => {
+        const idEstado = e.target.value;
+        setNuevoVehiculo(prevState => ({
+            ...prevState,
+            idEstado: idEstado
+        }));
+    };
+
     const handleBuscar = (e) => {
         setFiltro(e.target.value);
     };
+
+    const mapEstado = (idEstado) => {
+        const estado = Estado.find(e => e.idEstado === idEstado);
+        return estado ? estado.estado : 'mantención';
+    };
+
     const vehiculosFiltrados = data.filter(v => {
         return v.marca.toLowerCase().includes(filtro.toLowerCase()) ||
             v.modelo.toLowerCase().includes(filtro.toLowerCase()) ||
@@ -152,11 +180,14 @@ const Vehiculos = () => {
             v.patente.toLowerCase().includes(filtro.toLowerCase()) ||
             v.id.toLowerCase().includes(filtro.toLowerCase()) ||
             v.kilometrajeinicial.toLowerCase().includes(filtro.toLowerCase()) ||
-            v.kilometrajeactual.toLowerCase().includes(filtro.toLowerCase());
+            v.kilometrajeactual.toLowerCase().includes(filtro.toLowerCase()) ||
+            mapEstado(v.idEstado).toLowerCase().includes(filtro.toLowerCase());
     });
+
     if (error) {
         return <div>Error: {error.message}</div>;
     }
+
     return (
         <div>
             <Navbar />
@@ -173,6 +204,7 @@ const Vehiculos = () => {
                         <th>PATENTE</th>
                         <th>kilometraje Inicial</th>
                         <th>kilometraje Actual</th>
+                        <th>Estado Vehiculo</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -187,6 +219,7 @@ const Vehiculos = () => {
                             <td>{v.patente}</td>
                             <td>{v.kilometrajeinicial}</td>
                             <td>{v.kilometrajeactual}</td>
+                            <td>{mapEstado(v.idEstado)}</td>
                             <td>
                                 <Button variant="primary" onClick={() => handleModificar(v.id)}>Modificar</Button>
                                 <Button variant="danger" onClick={() => handleDelete(v.id)}>Eliminar</Button>
@@ -232,19 +265,29 @@ const Vehiculos = () => {
                                 <option value="Automatico">Automático</option>
                                 <option value="Manual">Manual</option>
                             </Form.Control>
-                            <Form.Group controlId="formPatente">
-                                <Form.Label>Patente:</Form.Label>
-                                <Form.Control type="text" name="patente" value={nuevoVehiculo.patente} onChange={handleEditar} />
-                            </Form.Group>
-                            <Form.Group controlId="formKilometrajeinicial">
-                                <Form.Label>Kilometraje Inicial:</Form.Label>
-                                <Form.Control type="text" name="kilometrajeinicial" value={nuevoVehiculo.kilometrajeinicial} onChange={handleEditar} />
-                            </Form.Group>
-                            <Form.Group controlId="formKilometrajeactual">
-                                <Form.Label>kilometraje Actual:</Form.Label>
-                                <Form.Control type="text" name="kilometrajeactual" value={nuevoVehiculo.kilometrajeactual} onChange={handleEditar} />
-                            </Form.Group>
                         </Form.Group>
+                        <Form.Group controlId="formPatente">
+                            <Form.Label>Patente:</Form.Label>
+                            <Form.Control type="text" name="patente" value={nuevoVehiculo.patente} onChange={handleEditar} />
+                        </Form.Group>
+                        <Form.Group controlId="formKilometrajeinicial">
+                            <Form.Label>Kilometraje Inicial:</Form.Label>
+                            <Form.Control type="text" name="kilometrajeinicial" value={nuevoVehiculo.kilometrajeinicial} onChange={handleEditar} />
+                        </Form.Group>
+                        <Form.Group controlId="formKilometrajeactual">
+                            <Form.Label>kilometraje Actual:</Form.Label>
+                            <Form.Control type="text" name="kilometrajeactual" value={nuevoVehiculo.kilometrajeactual} onChange={handleEditar} />
+                        </Form.Group>
+                        <Form.Group controlId="formEstado">
+                            <Form.Label>Estado:</Form.Label>
+                            <Form.Control as="select" name="idEstado" value={nuevoVehiculo.idEstado} onChange={handleEstado}>
+                                <option value="">Seleccionar</option>
+                                {Array.isArray(Estado) && Estado.map(estado => (
+                                    <option key={estado.idEstado} value={estado.idEstado}>{estado.estado}</option>
+                                ))}
+                            </Form.Control>
+                        </Form.Group>
+
                         <Button variant="primary" type="submit">Guardar cambios</Button>
                     </Form>
                 </Modal.Body>

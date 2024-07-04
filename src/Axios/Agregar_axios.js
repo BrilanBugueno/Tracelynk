@@ -4,58 +4,83 @@ import axios from './axiosConfig';
 import Navbar from '../components/Navbar';
 import '../stylesheets/AgregarVehiculo.css';
 
+// Componente para agregar un vehículo
 const AgregarVehiculo = ({ onAgregar }) => {
-    const [show, setShow] = useState(false);
-    const [marca, setMarca] = useState('');
-    const [modelo, setModelo] = useState('');
-    const [anio, setAnio] = useState('');
-    const [transmision, setTransmision] = useState('');
-    const [patente, setPatente] = useState('');
-    const [kilometrajeinicial, setKilometrajeinicial] = useState('');
-    const [kilometrajeactual, setKilometrajeactual] = useState('');
-    const [error, setError] = useState(null);
-    const [marcas, setMarcas] = useState([]);
-    const [modelos, setModelos] = useState([]);
+    // Definición de estados utilizando useState
+    const [show, setShow] = useState(false); // Estado para controlar la visibilidad del modal
+    const [marca, setMarca] = useState(''); // Estado para el nombre de la marca del vehículo
+    const [modelo, setModelo] = useState(''); // Estado para el modelo del vehículo
+    const [anio, setAnio] = useState(''); // Estado para el año del vehículo
+    const [transmision, setTransmision] = useState(''); // Estado para la transmisión del vehículo
+    const [patente, setPatente] = useState(''); // Estado para la patente del vehículo
+    const [kilometrajeinicial, setKilometrajeinicial] = useState(''); // Estado para el kilometraje inicial del vehículo
+    const [kilometrajeactual, setKilometrajeactual] = useState(''); // Estado para el kilometraje actual del vehículo
+    const [error, setError] = useState(null); // Estado para manejar errores
+    const [marcas, setMarcas] = useState([]); // Estado para almacenar las marcas obtenidas de la API
+    const [modelos, setModelos] = useState([]); // Estado para almacenar los modelos obtenidos de la API
+    const [modelosLoading, setModelosLoading] = useState(false); // Estado para indicar carga de modelos
 
+    // Función para cerrar el modal
     const handleClose = () => setShow(false);
+
+    // Función para mostrar el modal
     const handleShow = () => setShow(true);
 
+    // useEffect para obtener las marcas al montar el componente
     useEffect(() => {
         fetchMarcas();
     }, []);
 
+    // useEffect para obtener los modelos cada vez que se cambia la marca
     useEffect(() => {
         if (marca) {
             fetchModelos(marca);
         }
     }, [marca]);
 
+    // Función para obtener las marcas desde la API
     const fetchMarcas = async () => {
         try {
-            const response = await axios.get('http://localhost/Tracelink/obtener_marcas.php');
+            const response = await axios.get('http://localhost/Tracelink/vehiculo/obtener_marcas.php');
             setMarcas(response.data);
         } catch (error) {
             console.error('Error al obtener marcas:', error);
         }
     };
 
-    const fetchModelos = async (marcaId) => {
+    // Función para obtener los modelos según la marca seleccionada desde la API
+    const fetchModelos = async (marcaNombre) => {
         try {
-            const response = await axios.get(`http://localhost/Tracelink/obtener_modelos.php?marca=${marcaId}`);
+            setModelosLoading(true);
+            const response = await axios.get(`http://localhost/Tracelink/vehiculo/obtener_modelos.php?marca=${marcaNombre}`);
+            console.log('Modelos obtenidos:', response.data); // Verifica los modelos recibidos
             setModelos(response.data);
         } catch (error) {
             console.error('Error al obtener modelos:', error);
+        } finally {
+            setModelosLoading(false);
         }
     };
+    
 
+    // Función para manejar el cambio de marca
+    const handleMarcaChange = (e) => {
+        const selectedMarca = e.target.value;
+        setMarca(selectedMarca);
+        setModelo(''); // Reiniciar el modelo al cambiar la marca
+    };
+
+    // Función para manejar el envío del formulario
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Verificar que todos los campos estén llenos
         if (!marca || !modelo || !anio || !transmision || !patente || !kilometrajeinicial || !kilometrajeactual) {
             setError('Todos los campos son obligatorios.');
             return;
         }
 
+        // Log de los datos que se enviarán al servidor
         console.log('Datos que se enviarán al servidor:', {
             marca,
             modelo,
@@ -66,8 +91,9 @@ const AgregarVehiculo = ({ onAgregar }) => {
             kilometrajeactual
         });
 
+        // Envío de datos al servidor
         try {
-            const response = await axios.post('/agregar_vehiculo.php', {
+            const response = await axios.post('http://localhost/Tracelink/vehiculo/agregar_vehiculo.php', {
                 marca,
                 modelo,
                 anio,
@@ -77,13 +103,16 @@ const AgregarVehiculo = ({ onAgregar }) => {
                 kilometrajeactual
             });
 
+            // Log de la respuesta del servidor
             console.log('Respuesta del servidor:', response.data);
 
+            // Manejo de la respuesta del servidor
             if (response.data && response.data.success) {
+                setError(response.data.error);
                 if (typeof onAgregar === 'function') {
                     onAgregar(response.data);
                 }
-
+                // Resetear los campos del formulario
                 setMarca('');
                 setModelo('');
                 setAnio('');
@@ -106,59 +135,62 @@ const AgregarVehiculo = ({ onAgregar }) => {
         <>
             <Navbar />
             <div className="container">
+               
+
+                <Modal show={true} onHide={handleClose}>
+                    <Modal.Body>
+                        {error && <p className="text-danger">{error}</p>}
+                        <Form onSubmit={handleSubmit}>
+                            <Form.Group controlId="formMarca">
+                                <Form.Label>Marca:</Form.Label>
+                                <Form.Control as="select" value={marca} onChange={handleMarcaChange} required>
+                                    <option value="">Seleccionar</option>
+                                    {Array.isArray(marcas) && marcas.map(marca => (
+                                        <option key={marca.idMarca} value={marca.Nombre_marca}>{marca.Nombre_marca}</option>
+                                    ))}
+                                </Form.Control>
+                            </Form.Group>
+                            <Form.Group controlId="formModelo">
+                                <Form.Label>Modelo:</Form.Label>
+                               <Form.Control as="select" value={modelo} onChange={(e) => setModelo(e.target.value)} required disabled={!marca || modelosLoading}>
+    <option value="">Seleccionar</option>
+    {modelos.map((modelo, index) => (
+        <option key={index} value={modelo}>{modelo}</option>
+    ))}
+</Form.Control>
+
+                            </Form.Group>
+                            <Form.Group controlId="formAnio">
+                                <Form.Label>Año:</Form.Label>
+                                <Form.Control type="number" value={anio} onChange={(e) => setAnio(e.target.value)} required />
+                            </Form.Group>
+                            <Form.Group controlId="formTransmision">
+                                <Form.Label>Transmisión:</Form.Label>
+                                <Form.Control as="select" value={transmision} onChange={(e) => setTransmision(e.target.value)} required>
+                                    <option value="">Seleccionar</option>
+                                    <option value="Automatico">Automático</option>
+                                    <option value="Manual">Manual</option>
+                                </Form.Control>
+                            </Form.Group>
+                            <Form.Group controlId="formPatente">
+                                <Form.Label>Patente:</Form.Label>
+                                <Form.Control type="text" value={patente} onChange={(e) => setPatente(e.target.value)} required />
+                            </Form.Group>
+                            <Form.Group controlId="formKilometrajeinicial">
+                                <Form.Label>Kilometraje Inicial:</Form.Label>
+                                <Form.Control type="text" value={kilometrajeinicial} onChange={(e) => setKilometrajeinicial(e.target.value)} required />
+                            </Form.Group>
+                            <Form.Group controlId="formKilometrajeactual">
+                                <Form.Label>Kilometraje Actual:</Form.Label>
+                                <Form.Control type="text" value={kilometrajeactual} onChange={(e) => setKilometrajeactual(e.target.value)} required />
+                            </Form.Group>
+                            <Button variant="primary" type="submit">
+                                Agregar
+                            </Button>
+                        </Form>
+                    </Modal.Body>
+                </Modal>
             </div>
-            <Modal show={true} onHide={handleClose}>
-                <Modal.Body>
-                    {error && <p className="text-danger">{error}</p>}
-                    <Form onSubmit={handleSubmit}>
-                        <Form.Group controlId="formMarca">
-                            <Form.Label>Marca:</Form.Label>
-                            <Form.Control as="select" value={marca} onChange={(e) => setMarca(e.target.value)} required>
-                                <option value="">Seleccionar</option>
-                                {Array.isArray(marcas) && marcas.map(marca => (
-                                    <option key={marca.idMarca} value={marca.Nombre_marca}>{marca.Nombre_marca}</option>
-                                ))}
-                            </Form.Control>
-                        </Form.Group>
-                        <Form.Group controlId="formModelo">
-                            <Form.Label>Modelo:</Form.Label>
-                            <Form.Control as="select" onChange={(e) => setModelo(e.target.value)} value={modelo} disabled={!marca} required>
-                                <option value="">Seleccionar</option>
-                                {Array.isArray(modelos) && modelos.map((modelo, index) => (
-                                    <option key={index} value={modelo}>{modelo}</option>
-                                ))}
-                            </Form.Control>
-                        </Form.Group>
-                        <Form.Group controlId="formAnio">
-                            <Form.Label>Año:</Form.Label>
-                            <Form.Control type="number" value={anio} onChange={(e) => setAnio(e.target.value)} required />
-                        </Form.Group>
-                        <Form.Group controlId="formTransmision">
-                            <Form.Label>Transmisión:</Form.Label>
-                            <Form.Control as="select" value={transmision} onChange={(e) => setTransmision(e.target.value)} required>
-                                <option value="">Seleccionar</option>
-                                <option value="Automatico">Automático</option>
-                                <option value="Manual">Manual</option>
-                            </Form.Control>
-                        </Form.Group>
-                        <Form.Group controlId="formPatente">
-                            <Form.Label>Patente:</Form.Label>
-                            <Form.Control type="text" value={patente} onChange={(e) => setPatente(e.target.value)} required />
-                        </Form.Group>
-                        <Form.Group controlId="formKilometrajeinicial">
-                            <Form.Label>Kilometraje Inicial:</Form.Label>
-                            <Form.Control type="text" value={kilometrajeinicial} onChange={(e) => setKilometrajeinicial(e.target.value)} required />
-                        </Form.Group>
-                        <Form.Group controlId="formKilometrajeactual">
-                            <Form.Label>Kilometraje Actual:</Form.Label>
-                            <Form.Control type="text" value={kilometrajeactual} onChange={(e) => setKilometrajeactual(e.target.value)} required />
-                        </Form.Group>
-                        <Button variant="primary" type="submit">
-                            Agregar
-                        </Button>
-                    </Form>
-                </Modal.Body>
-            </Modal>
         </>
     );
 };

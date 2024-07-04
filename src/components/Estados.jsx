@@ -1,94 +1,116 @@
-import { useState } from "react";
-// importo el use state que me servira para cambiar el estado del componente 
-// importo uuidv4 que sirve para poder modificar directo desde un boton para modificar todo menos el id 
-import { v4 as uuidv4 } from 'uuid';
+import { useState, useEffect } from "react";
 import Navbar from './Navbar';
+import axios from 'axios';
+import { Table, Button, Modal, Form } from 'react-bootstrap';
 
 function EstadoComponent() {
-    // vtro un array estado con set estados
-    const [estados, setEstados] = useState([]);
-    // almaceno el estado actual , en un objeto, id, estado, fecha
-    const [nuevoEstado, setNuevoEstado] = useState({ id: '', estado: '', fecha: '' });
-    // creo un modificar estado
-    const [estadoAModificar, setEstadoAModificar] = useState(null);
-  
-    //creo la funcion agregar estado 
-    function agregarEstado() {
-        // valido que el objeto no este vacio
-      if (nuevoEstado.estado) {
-        // modifico estados pasandole a estados el nuevoestado
-        setEstados([...estados, { ...nuevoEstado, id: uuidv4() }]);
-        // paso vacio a nuevoestado
-        setNuevoEstado({ id: '', estado: '', fecha: '' });
-      } else {
-        alert('Por favor, rellene el campo de estado antes de agregar un nuevo estado.');
-      }
+  const [estados, setEstados] = useState([]);
+  const [nuevoEstado, setNuevoEstado] = useState({ idEstado: '', estado: '', fecha: '' });
+  const [estadoAModificar, setEstadoAModificar] = useState(null);
+  const [formulario, setFormulario] = useState({ vehiculo_id: '' });
+  const [vehiculos, setVehiculos] = useState([]);
+  const [filtro, setFiltro] = useState('');
+
+  useEffect(() => {
+    // Obtener los estados al cargar el componente
+    axios.get('http://localhost/Tracelink/Estados/obtenerEstados.php')
+      .then(response => setEstados(response.data))
+      .catch(error => console.error('Error al obtener los estados:', error));
+  }, []);
+
+  const agregarEstado = (e) => {
+    e.preventDefault();
+
+    if (nuevoEstado.estado === '' || nuevoEstado.fecha === '') {
+      alert('Por favor, completa todos los campos');
+      return;
     }
-  //creo la funcion modificar  pasando id
-    function prepararModificacion(id) {
-        // find recorre cara parte del array estado, comparando estado.id
-        //a comparo que el estado.id sea igual al id
-      const estado = estados.find(estado => estado.id === id);
-      // midivico el el setestadoamodificar pasandole estado
-      setEstadoAModificar(estado);
-      // modifico el estado de nuevo estado pasandole estado
-      setNuevoEstado(estado);
-    }
-  
-    function aplicarModificacion() {
-        //valido estadoamodificar y nuevoestado.estado 
-      if (estadoAModificar && nuevoEstado.estado) {
-        // ocupo funcion flecha 
-        //verifico que el id sea igual que el id del estadoamodificar.id 
-        const nuevosEstados = estados.map(estado => estado.id === estadoAModificar.id ? nuevoEstado : estado);
-        // modifico el estadoos pasandole nuevosestados
-        setEstados(nuevosEstados);
-        // modifico el set estadoamodificar dejandolo null
-        setEstadoAModificar(null);
-        // modifico el setnuevoestado a vacio
-        setNuevoEstado({ id: '', estado: '', fecha: '' });
-      }
-    }
-  //creo la funcion eliminar pasando el id 
-    function eliminarEstado(id) {
-        // guardo en nuevosestados filtrando la id de estado.id que sea igual al id
-      const nuevosEstados = estados.filter(estado => estado.id !== id);
-      setEstados(nuevosEstados);
-    }
-  
-    return (
-      <div>
-        <Navbar /> 
-        <form onSubmit={function(e) { e.preventDefault(); estadoAModificar ? aplicarModificacion() : agregarEstado(); }}>
-          <input type="text" placeholder="Estado" value={nuevoEstado.estado} onChange={function(e) { setNuevoEstado({ ...nuevoEstado, estado: e.target.value }) }} required />
-          <input type="datetime-local" value={nuevoEstado.fecha} onChange={function(e) { setNuevoEstado({ ...nuevoEstado, fecha: e.target.value }) }} />
-          <button type="submit">{estadoAModificar ? 'Modificar' : 'Agregar'}</button>
-        </form>
-        <table>
-          <thead>
-            <tr>
-              <th>Estado</th>
-              <th>Fecha</th>
-              <th>Operaciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {estados.map(function(estado) {
-              return (
-                <tr key={estado.id}>
-                  <td>{estado.estado}</td>
-                  <td>{estado.fecha}</td>
-                  <td>
-                    <button onClick={function() { prepararModificacion(estado.id) }}>Modificar</button>
-                    <button onClick={function() { eliminarEstado(estado.id) }}>Eliminar</button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    );
+
+    axios.post('http://localhost/Tracelink/Estados/Agregar_Estado.php', nuevoEstado)
+      .then(response => {
+        if (response.data.success) {
+          const nuevoIdEstado = response.data.idEstado.toString();
+          setEstados([...estados, { ...nuevoEstado, idEstado: nuevoIdEstado }]);
+          setNuevoEstado({ idEstado: '', estado: '', fecha: '' });
+          alert('Estado agregado con éxito');
+        } else {
+          alert('Error al agregar el estado: ' + response.data.error);
+        }
+      })
+      .catch(error => console.error('Error al agregar el estado:', error));
+  };
+
+  const EstadoFiltradas = estados.filter(e => {
+    return e.idEstado.toString().toLowerCase().includes(filtro.toLowerCase()) ||
+      e.estado.toLowerCase().includes(filtro.toLowerCase()) ||
+      e.fecha.toLowerCase().includes(filtro.toLowerCase());
+  });
+
+  function prepararModificacion(id) {
+    const estado = estados.find(estado => estado.idEstado === id);
+    setEstadoAModificar(estado);
+    setNuevoEstado(estado);
   }
+
+  function aplicarModificacion() {
+    if (estadoAModificar && nuevoEstado.estado) {
+      const nuevosEstados = estados.map(estado => estado.idEstado === estadoAModificar.idEstado ? nuevoEstado : estado);
+      setEstados(nuevosEstados);
+      setEstadoAModificar(null);
+      setNuevoEstado({ idEstado: '', estado: '', fecha: '' });
+    }
+  }
+
+  function eliminarEstado(id) {
+    const nuevosEstados = estados.filter(estado => estado.idEstado !== id);
+    setEstados(nuevosEstados);
+  }
+
+  const manejarCambio = (e) => {
+    setFormulario({ ...formulario, [e.target.name]: e.target.value });
+  };
+
+  return (
+    <div>
+      <Navbar />
+      <form onSubmit={(e) => { e.preventDefault(); estadoAModificar ? aplicarModificacion() : agregarEstado(e); }}>
+        <label>
+          Estado
+          <input type="text" placeholder="Estado" value={nuevoEstado.estado} onChange={(e) => setNuevoEstado({ ...nuevoEstado, estado: e.target.value })} />
+        </label>
+        <label>
+          Fecha:<br/>
+          <input
+            type="date"
+            value={nuevoEstado.fecha}
+            onChange={(e) => setNuevoEstado({ ...nuevoEstado, fecha: e.target.value })}
+          />
+        </label>
+        <button type="submit" className="btn btn-primary">Agregar Estado</button>
+      </form>
+      <table>
+        <thead>
+          <tr>
+            <th>Estado</th>
+            <th>Fecha</th>
+            <th>Operaciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {EstadoFiltradas.map(e => (
+            <tr key={e.idEstado}>
+              <td>{e.estado}</td>
+              <td>{e.fecha}</td>
+              <td>
+                <Button variant="warning" onClick={() => prepararModificacion(e.idEstado)}>Editar Estado</Button>
+                <Button variant="danger" onClick={() => eliminarEstado(e.idEstado)}>Eliminar estado</Button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
 export default EstadoComponent;

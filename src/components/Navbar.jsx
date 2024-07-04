@@ -1,56 +1,54 @@
 import React from 'react';
-import '../stylesheets/navbar.css'; // Importa el archivo CSS de estilos
+import '../stylesheets/navbar.css'; 
 
 function Navbar() {
   return (
     <nav>
       <ul>
         <li><a href="/">Inicio</a></li>
-         {/* Dropdown Cita */}
+         {/* Dropdown Vehículo */}
          <li className="dropdown">
         <a href="/AgendarCita" className="dropbtn">Agendar Cita</a>
         <div className="dropdown-content">
             <a href="/AgendarCita">Agregar</a>
+            <a href="/AgendarCitas">Mostrar Citas</a>
             <a href="/AgendarMantencion">Mantencion</a>
+            <a href="/test">Test</a>
           </div></li>
         <li><a href="/AgregarObjeto">Agregar Objeto</a></li>
-        <li><a href="/Estados">Estado</a></li>
+         {/* Dropdown Vehículo */}
+         <li className="dropdown">
+          <a href="/Estados" className="dropbtn">Estados</a>
+            <div className="dropdown-content">
+            <a href="/Estados">Agregar</a>
+            <a href="/EditarEstado">Modificar/Mostar</a>
+          </div>
+        </li>
         {/* Dropdown Vehículo */}
         <li className="dropdown">
           <a href="/AgregarVehiculo" className="dropbtn">Vehículo</a>
             <div className="dropdown-content">
             <a href="/AgregarVehiculo">Agregar</a>
-            <a href="/ModificarVehiculos">Modificar</a>
-            
+            <a href="/ModificarVehiculos">Modificar/Mostar</a>
           </div>
         </li>
-         {/* Dropdown Poligono */}
-         <li className="dropdown">
-          <a href="/AgregarPoligono" className="dropbtn">Poligogono</a>
+        <li className="dropdown">
+          <a href="/AgregarMecanico" className="dropbtn">Mecanicos</a>
             <div className="dropdown-content">
-            <a href="/AgregarPoligono">Agregar</a>
-            <a href="/EditarPoligono">Editar</a>
+            <a href="/AgregarMecanico">Agregar</a>
+            <a href="/Editar_Mecanico">Modificar/Mostar</a>
           </div>
         </li>
-                {/* Dropdown Puntos */}
-                <li className="dropdown">
-          <a href="/AgregarPunto" className="dropbtn">Puntos</a>
-          <div className="dropdown-content">
-            <a href="/AgregarPunto">Agregar</a>
-            <a href="/EditarPunto">Editar</a>
-          </div>
-          </li>
+
+     
     {/* Dropdown Polipunto */}
     <li className="dropdown">
       <a href="/AgregarPolipunto" className="dropbtn">Polipunto</a>
       <div className="dropdown-content">
         <a href="/AgregarPoliPunto">Agregar Polígono</a>
-        <a href="/AgregarPunto">Agregar Punto</a>
         <a href="/EditarPoliPunto">Editar</a>
       </div>
     </li>
-        
-        
       </ul>
     </nav>
   );
