@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+ import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polygon } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -14,48 +13,29 @@ L.Icon.Default.mergeOptions({
 });
 
 const Mapa = () => {
-    const [poligonos, setPoligonos] = useState([]);
+    
     const position = [-27.360535800413754, -70.3350422675603]; 
-    const polygonCoordinates = [  
-        [-27.63360547581458,-70.3086136488491],
+//ubicacion ponerlo en la db y tratar de recuperarlo aca
+    // Definir coordenadas del polígono
+    const polygonCoordinates =
+    
+    [  [ -27.63360547581458,-70.3086136488491 ]    ,
         [-27.351702581932837 , -70.36877898892281],
         [-27.380347504022765, -70.3461700066091],
-        [-27.42293152950013, -70.29230581781657],
-        [-27.392833963748277,  -70.26569830453009]
-    ];
-
-    useEffect(() => {
-        axios.get('http://localhost/Tracelink/poligonos/MostrarPoligonos.php')
-            .then(response => {
-                setPoligonos(response.data);
-            })
-            .catch(error => {
-                console.error('Hubo un error al obtener los polígonos:', error);
-            });
-    }, []);
-
+        [ -27.42293152950013, -70.29230581781657 ],
+         [-27.392833963748277,  -70.26569830453009] ];
+//
     return (
-        <div>
-            <select>
-                {poligonos.map((poligono, index) => (
-                    <option key={index} value={poligono.idPoligono}>
-                        {poligono.nombre}
-                    </option>
-                ))}
-            </select>
-            <MapContainer center={position} zoom={14} style={{ height: "600%" ,width: "250%" }}>
-                <TileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                />
-                <Marker position={position}>
-                </Marker>
-                <Polygon positions={polygonCoordinates} color="purple">
-                    
-                </Polygon>
-            </MapContainer>
-        </div>
+        <MapContainer center={position} zoom={14} style={{ height: "600%" ,width: "250%" }}>
+            <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            />
+            <Marker position={position}>
+            </Marker>
+            <Polygon positions={polygonCoordinates} color="purple">
+                
+            </Polygon>
+        </MapContainer>
     );
 }
-
-export default Mapa;
